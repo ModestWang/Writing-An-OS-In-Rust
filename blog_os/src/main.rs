@@ -3,7 +3,7 @@
  * @Author: ModestWang 1598593280@qq.com
  * @Date: 2024-09-14 21:11:21
  * @LastEditors: ModestWang
- * @LastEditTime: 2024-09-15 10:50:25
+ * @LastEditTime: 2024-11-08 21:53:57
  * 2024 by ModestWang, All Rights Reserved.
  * @Descripttion:
  */
@@ -12,10 +12,21 @@
 
 use core::panic::PanicInfo;
 
+static HELLO: &[u8] = b"Hello World!";
+
 #[no_mangle] // 不重整函数名
 pub extern "C" fn _start() -> ! {
     // 因为链接器会寻找一个名为 `_start` 的函数，所以这个函数就是入口点
     // 默认命名为 `_start`
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in HELLO.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
+        }
+    }
+
     loop {}
 }
 
