@@ -3,7 +3,7 @@
  * @Author: ModestWang 1598593280@qq.com
  * @Date: 2024-11-19 21:40:37
  * @LastEditors: ModestWang
- * @LastEditTime: 2024-11-19 22:34:10
+ * @LastEditTime: 2024-11-20 18:28:12
  * 2024 by ModestWang, All Rights Reserved.
  * @Descripttion: VGA text buffer
  */
@@ -215,4 +215,45 @@ pub fn print_something() {
     writer.write_byte(b'H');
     writer.write_string("ello! ");
     write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
+}
+
+/// Hello World
+fn print_hello() {
+    static HELLO: &[u8] = b"Hello World!";
+
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in HELLO.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
+        }
+    }
+}
+
+/// 简单测试
+#[test_case]
+fn test_println_simple() {
+    println!("test_println_simple output");
+}
+
+/// 多次测试
+#[test_case]
+fn test_println_many() {
+    for _ in 0..200 {
+        println!("test_println_many output");
+    }
+}
+
+/// 测试输出
+#[test_case]
+fn test_println_output() {
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+
+    // 比较打印结果与输入是否一致
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
 }

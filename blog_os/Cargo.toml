@@ -5,18 +5,41 @@ edition = "2021"
 
 # 使用 `cargo build` 编译时需要的配置
 [profile.dev]
-panic = "abort" # 禁用panic时栈展开
+# panic = "abort" # 禁用panic时栈展开
 
 # 使用 `cargo build --release` 编译时需要的配置
 [profile.release]
-panic = "abort" # 禁用 panic 时栈展开
+# panic = "abort" # 禁用 panic 时栈展开
 
 [dependencies]
 bootloader = "0.9"
-volatile = "0.2.6"
-spin = "0.5.2"
+volatile = "0.2"
+spin = "0.9"
+x86_64 = "0.15"
+uart_16550 = "0.3.2"
 
 # 延迟初始化
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+# QEMU支持一种名为 isa-debug-exit 的特殊设备，
+# 它提供了一种从客户系统（guest system）里退出QEMU的简单方式。
+# 为了使用这个设备，我们需要向QEMU传递一个 -device 参数
+# bootinage runner 会自动传递这个参数
+[package.metadata.bootimage]
+test-args = [
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-serial",
+    "stdio",
+    "-display",
+    "none",
+]
+test-success-exit-code = 33 # (0x10 << 1) | 1
+test-timeout = 60 # (in seconds)
+
+[[test]]
+# 对 should_panic 不使用默认的测试框架
+name = "should_panic"
+harness = false
